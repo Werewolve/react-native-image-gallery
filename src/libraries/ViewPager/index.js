@@ -226,7 +226,7 @@ export default class ViewPager extends PureComponent {
                 this.refs['innerFlatList'] && this.refs['innerFlatList'].recordInteraction();
             });
         } else {
-            this.scroller.startScroll(this.scroller.getCurrX(), 0, finalX - this.scroller.getCurrX(), 0, 400);
+            this.scroller.startScroll(this.scroller.getCurrX(), 0, finalX - this.scroller.getCurrX(), 0, 600);
         }
     }
 
@@ -260,7 +260,7 @@ export default class ViewPager extends PureComponent {
     }
 
     keyExtractor (item, index) {
-        return index;
+        return index.toString();
     }
 
     renderRow ({ item, index }) {

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { View, ViewPropTypes } from 'react-native';
+import { View, ViewPropTypes, ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
 import { createResponder } from './libraries/GestureResponder';
 import TransformableImage from './libraries/TransformableImage';
@@ -13,8 +13,10 @@ export default class Gallery extends PureComponent {
     static propTypes = {
         ...View.propTypes,
         images: PropTypes.arrayOf(PropTypes.object),
+        imageLoadingIndicatorProps: PropTypes.shape(ActivityIndicator.propTypes),
         initialPage: PropTypes.number,
         scrollViewStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
+        pageStyle: ViewPropTypes ? ViewPropTypes.style : View.propTypes.style,
         pageMargin: PropTypes.number,
         onPageSelected: PropTypes.func,
         onPageScrollStateChanged: PropTypes.func,
@@ -32,6 +34,7 @@ export default class Gallery extends PureComponent {
         removeClippedSubviews: true,
         imageComponent: undefined,
         scrollViewStyle: {},
+        pageStyle: {},
         flatListProps: DEFAULT_FLAT_LIST_PROPS
     };
 
@@ -57,6 +60,7 @@ export default class Gallery extends PureComponent {
 
     componentWillMount () {
         let onResponderReleaseOrTerminate = (evt, gestureState) => {
+            this.props.onSingleTapConfirmed && this.props.onSingleTapConfirmed(this.currentPage);
             if (this.activeResponder) {
                 if (this.activeResponder === this.viewPagerResponder &&
                     !this.shouldScrollViewPager(evt, gestureState) &&
@@ -107,7 +111,7 @@ export default class Gallery extends PureComponent {
             onResponderTerminate: onResponderReleaseOrTerminate,
             onResponderTerminationRequest: (evt, gestureState) => false, // Do not allow parent view to intercept gesture
             onResponderSingleTapConfirmed: (evt, gestureState) => {
-                this.props.onSingleTapConfirmed && this.props.onSingleTapConfirmed(this.currentPage);
+                // this.props.onSingleTapConfirmed && this.props.onSingleTapConfirmed(this.currentPage);
             }
         });
 
@@ -225,21 +229,23 @@ export default class Gallery extends PureComponent {
     }
 
     renderPage (pageData, pageId) {
-        const { onViewTransformed, onTransformGestureReleased, errorComponent, imageComponent } = this.props;
+        const { onViewTransformed, onTransformGestureReleased, errorComponent, imageComponent, imageLoadingIndicatorProps } = this.props;
         return (
             <TransformableImage
-              onViewTransformed={((transform) => {
-                  onViewTransformed && onViewTransformed(transform, pageId);
-              })}
-              onTransformGestureReleased={((transform) => {
-                  // need the 'return' here because the return value is checked in ViewTransformer
-                  return onTransformGestureReleased && onTransformGestureReleased(transform, pageId);
-              })}
-              ref={((ref) => { this.imageRefs.set(pageId, ref); })}
-              key={'innerImage#' + pageId}
-              errorComponent={errorComponent}
-              imageComponent={imageComponent}
-              image={pageData}
+                style={this.props.pageStyle}
+                onViewTransformed={((transform) => {
+                    onViewTransformed && onViewTransformed(transform, pageId);
+                })}
+                onTransformGestureReleased={((transform) => {
+                    // need the 'return' here because the return value is checked in ViewTransformer
+                    return onTransformGestureReleased && onTransformGestureReleased(transform, pageId);
+                })}
+                ref={((ref) => { this.imageRefs.set(pageId, ref); })}
+                key={'innerImage#' + pageId}
+                errorComponent={errorComponent}
+                imageComponent={imageComponent}
+                image={pageData}
+                imageLoadingIndicatorProps={imageLoadingIndicatorProps}
             />
         );
     }
